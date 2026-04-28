@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="NewsFlash"/>
+<meta name="theme-color" content="#07090d"/>
+<meta name="description" content="Real-time Indian financial news from 15+ sources"/>
+<title>NewsFlash — Live Indian Market News</title>
+<link rel="manifest" href="/manifest.json"/>
+<link rel="icon" href="/favicon.png" type="image/png"/>
+<link rel="apple-touch-icon" href="/icons/icon-192.png"/>
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#07090d;--bg2:#0d1117;--bg3:#12181f;--bg4:#1a2230;--bg5:#1e2a3a;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --text:#dde4ee;--text2:#7f8fa3;--text3:#3d4f63;
+  --green:#00d97e;--red:#ff4060;--amber:#ffa830;--blue:#4f8ef7;--purple:#9f7aea;
+  --mono:'IBM Plex Mono',monospace;--sans:'Inter',sans-serif;
+  --radius:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:2px}
+
+/* ── Layout ── */
+#shell{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* ── Topbar ── */
+#topbar{
+  height:48px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;
+}
+.logo{font-family:var(--mono);font-size:14px;letter-spacing:.06em;display:flex;align-items:center;gap:8px;margin-right:8px}
+.logo-led{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);animation:led 2s ease-in-out infinite}
+@keyframes led{0%,100%{opacity:1}50%{opacity:.35}}
+.kpi{display:flex;flex-direction:column;padding:0 14px;border-left:1px solid var(--border);height:48px;justify-content:center}
+.kpi-v{font-family:var(--mono);font-size:15px;font-weight:500;line-height:1}
+.kpi-l{font-size:10px;color:var(--text3);margin-top:3px;text-transform:uppercase;letter-spacing:.06em}
+.kv-green{color:var(--green)}.kv-amber{color:var(--amber)}.kv-blue{color:var(--blue)}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.pill{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;display:flex;align-items:center;gap:5px;border:1px solid}
+.pill-live{background:rgba(0,217,126,.08);color:var(--green);border-color:rgba(0,217,126,.2)}
+.pill-conn{background:rgba(255,168,48,.08);color:var(--amber);border-color:rgba(255,168,48,.2)}
+.pill-off{background:rgba(255,64,96,.08);color:var(--red);border-color:rgba(255,64,96,.2)}
+#clock{font-family:var(--mono);font-size:11px;color:var(--text3)}
+
+/* ── Ticker ── */
+#ticker-bar{height:26px;background:var(--bg3);border-bottom:1px solid var(--border);overflow:hidden;flex-shrink:0;position:relative}
+#ticker-inner{display:flex;align-items:center;height:100%;white-space:nowrap;animation:ticker 80s linear infinite}
+#ticker-inner:hover{animation-play-state:paused}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick{display:inline-flex;align-items:center;gap:8px;padding:0 18px;height:100%;border-right:1px solid var(--border);font-size:11px}
+.tick-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.tick-src{color:var(--text3);font-family:var(--mono)}
+.tick-t{color:var(--text2);max-width:260px;overflow:hidden;text-overflow:ellipsis}
+
+/* ── Body ── */
+#body{display:flex;flex:1;overflow:hidden}
+
+/* ── Sidebar ── */
+#sidebar{width:196px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sb-sec{padding:14px 0 6px}
+.sb-head{font-size:9px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text3);padding:0 14px 8px}
+.sb-btn{
+  display:flex;align-items:center;gap:9px;width:100%;padding:7px 14px;
+  border:none;background:none;color:var(--text2);font-size:12px;font-family:var(--sans);
+  cursor:pointer;text-align:left;transition:background .1s;
+}
+.sb-btn:hover{background:var(--bg3);color:var(--text)}
+.sb-btn.active{background:var(--bg4);color:var(--text)}
+.sb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-count{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg4);padding:1px 5px;border-radius:3px}
+.src-ok{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-left:auto}
+.src-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+
+/* ── Feed ── */
+#feed-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#feed-header{
+  height:40px;background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;
+}
+#feed-label{font-size:13px;font-weight:500}
+#feed-meta{margin-left:auto;font-size:11px;font-family:var(--mono);color:var(--text3)}
+#search{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);
+  padding:4px 10px;font-size:12px;color:var(--text);font-family:var(--sans);
+  width:180px;outline:none;
+}
+#search::placeholder{color:var(--text3)}
+#search:focus{border-color:var(--border2)}
+#feed{flex:1;overflow-y:auto}
+
+/* ── Article ── */
+.art{
+  display:flex;gap:0;padding:0;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background .1s;position:relative;
+}
+.art:hover{background:var(--bg3)}
+.art.is-new::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--green);box-shadow:0 0 6px var(--green);
+}
+.art-time{
+  width:90px;flex-shrink:0;display:flex;flex-direction:column;
+  justify-content:center;align-items:flex-start;
+  padding:14px 10px 14px 18px;
+  border-right:1px solid var(--border);gap:5px;
+}
+.at-clock{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--text);letter-spacing:.02em;line-height:1}
+.at-date{font-family:var(--mono);font-size:10px;color:var(--text2);letter-spacing:.02em;line-height:1}
+.at-age{font-size:10px;font-family:var(--mono);padding:2px 5px;border-radius:3px;line-height:1}
+.at-age.fresh{background:rgba(0,217,126,.15);color:var(--green)}
+.at-age.recent{background:rgba(255,168,48,.1);color:var(--amber)}
+.at-age.old{color:var(--text3)}
+.art-body{flex:1;min-width:0;padding:12px 16px}
+.art-meta{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
+.art-badge{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:3px;font-weight:500;letter-spacing:.02em}
+.art-new{font-size:9px;font-family:var(--mono);color:var(--green);letter-spacing:.08em;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.art-cat{font-size:10px;color:var(--text3);margin-left:auto;text-transform:uppercase;letter-spacing:.05em}
+.art-title{font-size:13.5px;font-weight:500;line-height:1.45;color:var(--text);margin-bottom:4px}
+.art-desc{font-size:12px;line-height:1.55;color:var(--text2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ── Empty ── */
+.empty{padding:60px;text-align:center;color:var(--text3);font-family:var(--mono);font-size:13px}
+
+/* ── Flash bar ── */
+#flash{position:fixed;top:0;left:0;right:0;height:2px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .35s ease;z-index:9999;pointer-events:none}
+#flash.show{transform:scaleX(1)}
+
+/* ── Toast ── */
+#toasts{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:7px;z-index:9998}
+.toast{
+  background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);
+  padding:9px 13px;font-size:12px;color:var(--text2);
+  display:flex;align-items:center;gap:8px;
+  animation:tin .2s ease;max-width:300px;
+}
+@keyframes tin{from{transform:translateX(16px);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.toast-n{font-family:var(--mono);font-weight:500;color:var(--text)}
+
+@media(max-width:680px){#sidebar{display:none}#search{width:130px}}
+
+/* ── PWA Install Banner ── */
+#install-banner{
+  display:none;align-items:center;gap:10px;
+  background:linear-gradient(135deg,rgba(0,217,126,.12),rgba(79,142,247,.08));
+  border-bottom:1px solid rgba(0,217,126,.2);
+  padding:10px 16px;flex-shrink:0;
+}
+#install-banner.show{display:flex}
+.ib-icon{font-size:20px}
+.ib-text{flex:1}
+.ib-title{font-size:13px;font-weight:500;color:var(--text)}
+.ib-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.ib-btn{
+  background:var(--green);color:#000;font-size:12px;font-weight:600;
+  padding:7px 14px;border-radius:var(--radius);border:none;cursor:pointer;
+  font-family:var(--sans);white-space:nowrap;
+}
+.ib-btn:hover{opacity:.9}
+.ib-dismiss{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;line-height:1}
+
+/* ── Topbar action buttons ── */
+.tb-btn{
+  background:var(--bg4);border:1px solid var(--border);border-radius:var(--radius);
+  color:var(--text2);font-size:11px;font-family:var(--mono);
+  padding:4px 9px;cursor:pointer;display:flex;align-items:center;gap:5px;
+  transition:all .15s;white-space:nowrap;
+}
+.tb-btn:hover{background:var(--bg5);color:var(--text)}
+.tb-btn.notif-on{background:rgba(0,217,126,.1);border-color:rgba(0,217,126,.25);color:var(--green)}
+
+/* ── Safe area for notched phones ── */
+#shell{padding-bottom:env(safe-area-inset-bottom)}
+</style>
+</head>
+<body>
+<div id="flash"></div>
+<div id="toasts"></div>
+<div id="shell">
+
+  <!-- PWA Install Banner -->
+  <div id="install-banner">
+    <span class="ib-icon">📲</span>
+    <div class="ib-text">
+      <div class="ib-title">Install NewsFlash</div>
+      <div class="ib-sub">Add to home screen for instant access & notifications</div>
+    </div>
+    <button class="ib-btn" onclick="installPWA()">Install</button>
+    <button class="ib-dismiss" onclick="dismissBanner()">✕</button>
+  </div>
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <div class="logo"><span class="logo-led" id="led"></span>NEWSFLASH</div>
+    <div class="kpi"><span class="kpi-v" id="kv-total">—</span><span class="kpi-l">Articles</span></div>
+    <div class="kpi"><span class="kpi-v kv-green" id="kv-5m">—</span><span class="kpi-l">Last 5 min</span></div>
+    <div class="kpi"><span class="kpi-v kv-amber" id="kv-1h">—</span><span class="kpi-l">Last hour</span></div>
+    <div class="kpi"><span class="kpi-v kv-blue" id="kv-src">—</span><span class="kpi-l">Sources live</span></div>
+    <div class="topbar-right">
+      <button class="tb-btn" id="notif-btn" onclick="toggleNotifications()" title="Breaking news alerts">🔔 Alerts</button>
+      <button class="tb-btn" id="install-btn" onclick="installPWA()" style="display:none">⬇ Install</button>
+      <span class="pill pill-conn" id="conn-pill"><span>●</span><span id="conn-txt">CONNECTING</span></span>
+      <span id="clock"></span>
+    </div>
+  </div>
+
+  <!-- Ticker -->
+  <div id="ticker-bar"><div id="ticker-inner"></div></div>
+
+  <!-- Body -->
+  <div id="body">
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="sb-sec">
+        <div class="sb-head">Filter</div>
+        <button class="sb-btn active" data-f="all" onclick="setFilter('all')">
+          <span class="sb-dot" style="background:var(--text2)"></span>All
+          <span class="sb-count" id="cnt-all">0</span>
+        </button>
+      </div>
+      <div class="sb-sec">
+        <div class="sb-head">Category</div>
+        <button class="sb-btn" data-f="cat:breaking" onclick="setFilter('cat:breaking')">
+          <span class="sb-dot" style="background:var(--red)"></span>Breaking
+          <span class="sb-count" id="cnt-breaking">0</span>
+        </button>
+        <button class="sb-btn" data-f="cat:markets" onclick="setFilter('cat:markets')">
+          <span class="sb-dot" style="background:var(--amber)"></span>Markets
+          <span class="sb-count" id="cnt-markets">0</span>
+        </button>
+        <button class="sb-btn" data-f="cat:finance" onclick="setFilter('cat:finance')">
+          <span class="sb-dot" style="background:var(--blue)"></span>Finance
+          <span class="sb-count" id="cnt-finance">0</span>
+        </button>
+      </div>
+      <div class="sb-sec" id="sb-sources"><div class="sb-head">Sources</div></div>
+    </div>
+
+    <!-- Feed -->
+    <div id="feed-wrap">
+      <div id="feed-header">
+        <span id="feed-label">All Sources</span>
+        <input id="search" placeholder="Search headlines..." oninput="render()"/>
+        <span id="feed-meta">—</span>
+      </div>
+      <div id="feed"><div class="empty">Connecting…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let articles=[], filter='all', ws, reconnTimer, pingTimer;
+const COLORS={};
+
+// ── WebSocket ──────────────────────────────────────────────────────────────────
+function connect(){
+  const proto=location.protocol==='https:'?'wss:':'ws:';
+  ws=new WebSocket(`${proto}//${location.host}`);
+  setConn('connecting');
+
+  ws.onopen=()=>{
+    setConn('live');
+    clearTimeout(reconnTimer);
+    pingTimer=setInterval(()=>{if(ws.readyState===1)ws.send(JSON.stringify({type:'PING'}));},25000);
+  };
+
+  ws.onmessage=({data})=>{
+    const d=JSON.parse(data);
+    if(d.type==='SNAPSHOT'){
+      articles=d.articles||[];
+      updateStats(d.stats); updateSidebar(d.stats); render(); buildTicker();
+    } else if(d.type==='NEW_ARTICLES'&&d.articles?.length){
+      articles=[...d.articles,...articles].slice(0,800);
+      flash(); toast(d.articles); maybeNotify(d.articles);
+      updateStats(d.stats); updateSidebar(d.stats); render(); buildTicker();
+    } else if(d.type==='STATUS'){
+      updateStats(d.stats); updateSidebar(d.stats);
+    }
+  };
+
+  ws.onclose=()=>{ setConn('off'); clearInterval(pingTimer); reconnTimer=setTimeout(connect,3000); };
+  ws.onerror=()=>ws.close();
+}
+
+function setConn(s){
+  const el=document.getElementById('conn-pill');
+  const txt=document.getElementById('conn-txt');
+  const led=document.getElementById('led');
+  el.className='pill '+(s==='live'?'pill-live':s==='connecting'?'pill-conn':'pill-off');
+  txt.textContent=s.toUpperCase();
+  led.style.background=s==='live'?'var(--green)':s==='connecting'?'var(--amber)':'var(--red)';
+  led.style.boxShadow=s==='live'?'0 0 7px var(--green)':'none';
+}
+
+// ── Stats / Sidebar ────────────────────────────────────────────────────────────
+function updateStats(s){
+  if(!s)return;
+  document.getElementById('kv-total').textContent=s.total||0;
+  document.getElementById('kv-5m').textContent=s.last5min||0;
+  document.getElementById('kv-1h').textContent=s.last1hr||0;
+  const srcs=Object.values(s.sources||{});
+  const live=srcs.filter(x=>x.ok).length;
+  document.getElementById('kv-src').textContent=`${live}/${srcs.length}`;
+}
+
+function updateSidebar(s){
+  const srcs=s?.sources||{};
+  // source colors
+  Object.entries(srcs).forEach(([id,src])=>{ COLORS[id]=src.color||'#888'; });
+  // category counts
+  document.getElementById('cnt-all').textContent=articles.length;
+  document.getElementById('cnt-breaking').textContent=articles.filter(a=>a.category==='breaking').length;
+  document.getElementById('cnt-markets').textContent=articles.filter(a=>a.category==='markets').length;
+  document.getElementById('cnt-finance').textContent=articles.filter(a=>a.category==='finance').length;
+  // per-source list
+  const el=document.getElementById('sb-sources');
+  let html='<div class="sb-head">Sources</div>';
+  Object.entries(srcs).forEach(([id,src])=>{
+    const cnt=articles.filter(a=>a.source===id).length;
+    const okColor=src.ok===true?'var(--green)':src.ok===false?'var(--red)':'var(--text3)';
+    html+=`<button class="sb-btn" data-f="src:${id}" onclick="setFilter('src:${id}')">
+      <span class="sb-dot" style="background:${src.color}"></span>
+      <span class="src-name">${src.name}</span>
+      <span class="sb-count">${cnt}</span>
+      <span class="src-ok" style="background:${okColor}"></span>
+    </button>`;
+  });
+  el.innerHTML=html;
+  // re-highlight active
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===filter));
+}
+
+// ── Filter ─────────────────────────────────────────────────────────────────────
+const LABELS={'all':'All Sources','cat:breaking':'Breaking','cat:markets':'Markets','cat:finance':'Finance'};
+function setFilter(f){
+  filter=f;
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.toggle('active',b.dataset.f===f));
+  document.getElementById('feed-label').textContent=LABELS[f]||f.replace('src:','');
+  render();
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function render(){
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  let list=articles;
+  if(filter==='all'){}
+  else if(filter.startsWith('src:'))list=list.filter(a=>a.source===filter.slice(4));
+  else if(filter.startsWith('cat:'))list=list.filter(a=>a.category===filter.slice(4));
+  if(q)list=list.filter(a=>(a.title+a.description).toLowerCase().includes(q));
+
+  document.getElementById('feed-meta').textContent=`${list.length} articles`;
+  if(!list.length){document.getElementById('feed').innerHTML='<div class="empty">No articles match</div>';return;}
+
+  const now=Date.now();
+  let html='';
+  list.forEach(a=>{
+    const d=new Date(a.publishedAt);
+    const invalid=isNaN(d);
+    const clock=invalid?'--:--':d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const dateStr=invalid?'':days[d.getDay()]+', '+d.getDate()+' '+months[d.getMonth()];
+    const ageMs=now-d.getTime();
+    const ageMin=Math.floor(ageMs/60000);
+    const ageLbl=ageMin<1?'just now':ageMin<60?ageMin+'m ago':ageMin<1440?Math.floor(ageMin/60)+'h ago':Math.floor(ageMin/1440)+'d ago';
+    const ageCls=ageMin<30?'fresh':ageMin<180?'recent':'old';
+    const isNew=now-new Date(a.fetchedAt).getTime()<10*60000&&a.isNew;
+    const c=COLORS[a.source]||'#888';
+    const bg=c+'22';
+    html+=`<div class="art${isNew?' is-new':''}" onclick="open('${a.url}','_blank')">
+      <div class="art-time">
+        <span class="at-clock">${clock}</span>
+        <span class="at-date">${dateStr}</span>
+        <span class="at-age ${ageCls}">${ageLbl}</span>
+      </div>
+      <div class="art-body">
+        <div class="art-meta">
+          <span class="art-badge" style="background:${bg};color:${c}">${a.sourceName}</span>
+          ${isNew?'<span class="art-new">● LIVE</span>':''} 
+          <span class="art-cat">${a.category}</span>
+        </div>
+        <div class="art-title">${a.title}</div>
+        ${a.description?'<div class="art-desc">'+a.description+'</div>':''}
+      </div>
+    </div>`;
+  });
+  document.getElementById('feed').innerHTML=html;
+}
+
+// ── Ticker ─────────────────────────────────────────────────────────────────────
+function buildTicker(){
+  const recent=articles.slice(0,40);
+  const html=recent.map(a=>{
+    const c=COLORS[a.source]||'#888';
+    return `<span class="tick"><span class="tick-dot" style="background:${c}"></span><span class="tick-src">${a.sourceName}</span><span class="tick-t">${a.title}</span></span>`;
+  }).join('');
+  document.getElementById('ticker-inner').innerHTML=html+html;
+}
+
+// ── Flash / Toast ──────────────────────────────────────────────────────────────
+function flash(){
+  const el=document.getElementById('flash');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),500);
+}
+function toast(news){
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast';
+  const col=COLORS[news[0]?.source]||'var(--green)';
+  t.innerHTML=`<span class="toast-dot" style="background:${col}"></span><span class="toast-n">+${news.length}</span>&nbsp;new from ${news[0]?.sourceName||'feed'}`;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+// ── Clock ──────────────────────────────────────────────────────────────────────
+function tick(){
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+}
+setInterval(tick,1000); tick();
+
+connect();
+
+// ── Service Worker ──────────────────────────────────────────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load', async ()=>{
+    try{
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      console.log('[SW] Registered:', reg.scope);
+      swReg = reg;
+      checkNotifStatus();
+    } catch(e){ console.warn('[SW] Registration failed:', e); }
+  });
+}
+
+// ── PWA Install Prompt ──────────────────────────────────────────────────────────
+let deferredPrompt = null;
+let swReg = null;
+
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show banner if not dismissed before
+  if(!localStorage.getItem('pwa-dismissed')){
+    document.getElementById('install-banner').classList.add('show');
+  }
+  document.getElementById('install-btn').style.display='flex';
+});
+
+window.addEventListener('appinstalled', ()=>{
+  document.getElementById('install-banner').classList.remove('show');
+  document.getElementById('install-btn').style.display='none';
+  deferredPrompt=null;
+  showSystemToast('NewsFlash installed! Open from your home screen.');
+});
+
+async function installPWA(){
+  if(!deferredPrompt){ 
+    showSystemToast('To install: tap the share button → Add to Home Screen');
+    return; 
+  }
+  deferredPrompt.prompt();
+  const {outcome} = await deferredPrompt.userChoice;
+  if(outcome==='accepted') deferredPrompt=null;
+}
+
+function dismissBanner(){
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('pwa-dismissed','1');
+}
+
+// ── Push Notifications ──────────────────────────────────────────────────────────
+let notifEnabled = false;
+
+function checkNotifStatus(){
+  const btn = document.getElementById('notif-btn');
+  if(Notification.permission==='granted'){
+    notifEnabled=true;
+    btn.classList.add('notif-on');
+    btn.innerHTML='🔔 Alerts ON';
+  } else {
+    btn.classList.remove('notif-on');
+    btn.innerHTML='🔔 Alerts';
+  }
+}
+
+async function toggleNotifications(){
+  if(Notification.permission==='granted'){
+    // Toggle off — just update UI (can't revoke programmatically)
+    notifEnabled=!notifEnabled;
+    const btn=document.getElementById('notif-btn');
+    if(notifEnabled){ btn.classList.add('notif-on'); btn.innerHTML='🔔 Alerts ON'; }
+    else { btn.classList.remove('notif-on'); btn.innerHTML='🔔 Alerts'; }
+    showSystemToast(notifEnabled?'Breaking news alerts enabled':'Alerts paused');
+    return;
+  }
+  if(Notification.permission==='denied'){
+    showSystemToast('Notifications blocked — enable in browser settings');
+    return;
+  }
+  const perm = await Notification.requestPermission();
+  if(perm==='granted'){
+    notifEnabled=true;
+    checkNotifStatus();
+    showSystemToast('Alerts enabled! You will be notified of breaking news.');
+    // Show a test notification
+    if(swReg){
+      swReg.showNotification('NewsFlash Alerts Active',{
+        body:'You will now receive breaking news alerts.',
+        icon:'/icons/icon-192.png',
+        badge:'/icons/icon-72.png',
+        tag:'welcome',
+      });
+    }
+  }
+}
+
+// Fire notification for breaking news articles
+function maybeNotify(newArticles){
+  if(!notifEnabled || Notification.permission!=='granted' || !swReg) return;
+  const breaking = newArticles.filter(a=>a.category==='breaking');
+  if(!breaking.length) return;
+  const a = breaking[0];
+  swReg.showNotification('⚡ '+a.sourceName, {
+    body: a.title,
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-72.png',
+    tag: 'breaking-'+a.id,
+    renotify: true,
+    data: { url: a.url },
+    actions:[{action:'open',title:'Read'},{action:'dismiss',title:'Dismiss'}],
+  });
+}
+
+function showSystemToast(msg){
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className='toast';
+  t.innerHTML=`<span class="toast-dot" style="background:var(--blue)"></span>${msg}`;
+  c.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+</script>
+</body>
+</html>

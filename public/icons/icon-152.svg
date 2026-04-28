@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="152" height="152" viewBox="0 0 152 152">
+  <rect width="152" height="152" rx="19" fill="#0d1117"/>
+  <rect x="15" y="53" width="122" height="12" rx="6" fill="#00d97e" opacity="0.15"/>
+  <text x="76" y="79" font-family="monospace" font-size="27" font-weight="bold" fill="#e8edf5" text-anchor="middle" letter-spacing="2">NF</text>
+  <circle cx="109" cy="43" r="9" fill="#00d97e"/>
+</svg>
